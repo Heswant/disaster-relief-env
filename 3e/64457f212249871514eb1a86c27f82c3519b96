@@ -1,0 +1,44 @@
+Desktop/Agent-Control-Tower/app/public/app.js
+  s_2280b97093aadd::t_0435bd1bbaa40f 125
+  s_2280b97093aadd::t_793835f707ad74 149-178
+  s_2280b97093aadd::t_2c40cc203ffc35 290,294-295,298
+  s_2280b97093aadd::t_587ea86f8cfc83 124
+  s_2280b97093aadd::t_4a7496b9e06ae6 291
+  s_2280b97093aadd::t_535acdda58c1fb 179-198
+Desktop/Agent-Control-Tower/app/package.json
+  s_2280b97093aadd::t_e5256093f4d0e5 11
+Desktop/Agent-Control-Tower/app/src/server.js
+  s_2280b97093aadd::t_827f8e76ef7111 233
+  s_2280b97093aadd::t_e47bcd7474d09d 11
+Desktop/Agent-Control-Tower/app/test/act-inventory.test.js
+  s_2280b97093aadd::t_557b5f48587b02 1-28
+Desktop/Agent-Control-Tower/app/public/index.html
+  s_2280b97093aadd::t_55934968543740 47-55
+  s_2280b97093aadd::t_65e5b7187d9d85 57-63
+  s_2280b97093aadd::t_f40f6e15b8cf5b 56
+Desktop/Agent-Control-Tower/app/public/styles.css
+  s_2280b97093aadd::t_62a62a4cd6e54c 82-90
+  s_2280b97093aadd::t_79b221e4b62334 131
+  s_2280b97093aadd::t_3c9c2b6a9718ec 92-103
+  s_2280b97093aadd::t_f8f459206be550 130
+Desktop/Agent-Control-Tower/app/src/lib/act-inventory.js
+  s_2280b97093aadd::t_fc1428d1d42713 1-28,30,33-45,47-80
+  s_2280b97093aadd::t_8f7f7b66998523 29,31-32
+  s_2280b97093aadd::t_f1006657bad189 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "3e64457f212249871514eb1a86c27f82c3519b96",
+  "prompts": {},
+  "sessions": {
+    "s_2280b97093aadd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f64603b1-e227-486d-b1b5-c68d8de3ce91",
+        "model": "openai.gpt-5.6-luna"
+      },
+      "human_author": "Heswant <sireesha.yarramanayunigari@boomiteam.com>"
+    }
+  }
+}
