@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Agent Control Tower</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div>
+          <p class="eyebrow">CONTROL TOWER <span>/</span> OBSERVABILITY</p>
+          <h1>Agent operations at a glance</h1>
+          <p class="subhead">A focused, redacted view of your agent runs, health signals, and session timelines.</p>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <div class="live-indicator"><span class="pulse-dot"></span><span id="mode-badge" class="badge">Loading data mode…</span></div>
+        <button id="connect-button" class="connect-button" type="button">Connect</button>
+        <button id="refresh-button" class="icon-button" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><span aria-hidden="true">↻</span></button>
+      </div>
+    </header>
+
+    <section id="auth-panel" class="auth-panel" hidden aria-label="Dashboard connection">
+      <div>
+        <p class="eyebrow">VIEWER ACCESS</p>
+        <p class="auth-help">Enter the viewer session token. Do not use the internal ingestion token.</p>
+      </div>
+      <form id="auth-form" class="auth-form">
+        <label class="auth-token-field"><span class="sr-only">Viewer session token</span><input id="session-token" name="session-token" type="password" autocomplete="off" placeholder="Viewer session token" spellcheck="false"></label>
+        <button class="connect-button" type="submit">Sign in</button>
+        <button id="disconnect-button" class="secondary-button" type="button">Disconnect</button>
+      </form>
+    </section>
+
+    <section class="notice" aria-label="Data source notice">
+      <span class="dot"></span>
+      <span id="freshness">Loading local projection…</span>
+      <span class="notice-spacer"></span>
+      <span id="last-refresh" class="notice-time"></span>
+    </section>
+
+    <section id="summary" class="cards" aria-label="Summary metrics"></section>
+
+    <section class="panel trend-panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">ACTIVITY</p><h2>Recent volume</h2><p class="panel-caption">Invocation traffic across the selected projection</p></div>
+        <span class="panel-tag">Last 7 days</span>
+      </div>
+      <div id="trend" class="trend" aria-label="Recent activity trend"></div>
+    </section>
+
+    <section class="workspace">
+      <div class="panel sessions-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">SESSIONS</p><h2>Recent runs</h2><p id="session-count" class="panel-caption">Loading sessions…</p></div>
+          <div class="session-controls">
+            <label class="search-box"><span aria-hidden="true">⌕</span><input id="session-search" type="search" placeholder="Search runs" aria-label="Search sessions"></label>
+            <select id="status-filter" aria-label="Filter sessions by status">
+              <option value="">All statuses</option>
+              <option value="succeeded">Succeeded</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </div>
+        <div id="sessions" class="session-list"></div>
+      </div>
+
+      <div class="panel timeline-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">SESSION DETAIL</p><h2 id="timeline-title">Select a session</h2><p id="timeline-subtitle" class="panel-caption">Choose a run to inspect its redacted timeline</p></div>
+          <span id="detail-status" class="status-pill">—</span>
+        </div>
+        <div id="session-facts" class="session-facts" hidden></div>
+        <div id="timeline" class="timeline empty">Choose a run to inspect its redacted event timeline.</div>
+      </div>
+    </section>
+
+    <footer class="footer-note"><span class="shield" aria-hidden="true">◇</span> Sensitive prompts and payloads are redacted before persistence.</footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

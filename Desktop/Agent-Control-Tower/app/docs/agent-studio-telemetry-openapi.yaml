@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: Agent Studio Telemetry Ingestion
+  version: 0.2.0
+  description: >-
+    Development-only contract for sending redacted Agent Studio invocation
+    telemetry to the local Control Tower facade. The internal token belongs in
+    a secure Agent Studio/Boomi action configuration. It must never be placed in
+    agent instructions, prompts, datasets, browser code, or user-visible text.
+servers:
+  - url: https://{tunnel-host}
+    description: Temporary HTTPS tunnel to the local facade during development.
+    variables:
+      tunnel-host:
+        default: replace-with-temporary-host
+paths:
+  /internal/v1/telemetry:
+    post:
+      operationId: ingestTelemetry
+      summary: Ingest one redacted agent lifecycle update
+      description: >-
+        Send a session start, running update, or terminal update. Retries are
+        safe when eventId values remain stable. Telemetry delivery is
+        best-effort and must not turn a successful agent invocation into a
+        failure.
+      security:
+        - internalTelemetryToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelemetryEnvelope'
+            examples:
+              completedInvocation:
+                value:
+                  session:
+                    sessionId: agent-studio-run-123
+                    agentId: control-tower-analyst-connected
+                    agentAliasId: draft
+                    tenantId: demo-tenant
+                    projectId: control-tower
+                    status: succeeded
+                    startedAt: '2026-10-09T12:00:00.000Z'
+                    completedAt: '2026-10-09T12:00:04.000Z'
+                    durationMs: 4000
+                    inputTokenCount: 800
+                    outputTokenCount: 220
+                    toolCallCount: 1
+                    guardrailHit: false
+                  events:
+                    - eventId: agent-studio-run-123-start
+                      sessionId: agent-studio-run-123
+                      sequence: 1
+                      eventType: session_started
+                      timestamp: '2026-10-09T12:00:00.000Z'
+                      status: ok
+                      redactedSummary: Invocation accepted.
+                    - eventId: agent-studio-run-123-complete
+                      sessionId: agent-studio-run-123
+                      sequence: 2
+                      eventType: session_completed
+                      timestamp: '2026-10-09T12:00:04.000Z'
+                      status: ok
+                      redactedSummary: Invocation completed successfully.
+      responses:
+        '202':
+          description: Accepted; events with previously seen eventId values are ignored.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted, sessions, newEvents]
+                properties:
+                  accepted:
+                    type: boolean
+                  sessions:
+                    type: integer
+                  newEvents:
+                    type: integer
+        '400':
+          description: Invalid JSON or telemetry schema.
+        '401':
+          description: Missing or invalid internal service token.
+        '413':
+          description: Request body exceeds the development limit.
+components:
+  securitySchemes:
+    internalTelemetryToken:
+      type: apiKey
+      in: header
+      name: x-control-tower-token
+      description: Secure service secret; never expose this value to the browser or model context.
+  schemas:
+    TelemetryEnvelope:
+      type: object
+      required: [session]
+      additionalProperties: false
+      properties:
+        session:
+          $ref: '#/components/schemas/Session'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+    Session:
+      type: object
+      required: [sessionId, agentId, agentAliasId, tenantId, projectId, status, startedAt]
+      additionalProperties: false
+      properties:
+        sessionId: { type: string, minLength: 1, maxLength: 200 }
+        agentId: { type: string, minLength: 1, maxLength: 200 }
+        agentAliasId: { type: string, minLength: 1, maxLength: 200 }
+        tenantId: { type: string, minLength: 1, maxLength: 200 }
+        projectId: { type: string, minLength: 1, maxLength: 200 }
+        status: { type: string, enum: [running, succeeded, failed] }
+        startedAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+        durationMs: { type: integer, minimum: 0 }
+        inputTokenCount: { type: integer, minimum: 0 }
+        outputTokenCount: { type: integer, minimum: 0 }
+        toolCallCount: { type: integer, minimum: 0 }
+        guardrailHit: { type: boolean }
+        errorClass:
+          type: string
+          nullable: true
+          maxLength: 200
+    Event:
+      type: object
+      required: [eventId, sessionId]
+      additionalProperties: false
+      properties:
+        eventId: { type: string, minLength: 1, maxLength: 200 }
+        sessionId: { type: string, minLength: 1, maxLength: 200 }
+        sequence: { type: integer, minimum: 0 }
+        eventType: { type: string, maxLength: 100 }
+        timestamp: { type: string, format: date-time }
+        status: { type: string, maxLength: 50 }
+        toolName: { type: string, maxLength: 200 }
+        redactedSummary: { type: string, maxLength: 2000 }

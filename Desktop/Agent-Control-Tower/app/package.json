@@ -1,0 +1,17 @@
+{
+  "name": "agent-control-tower-facade",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Server-side read-only observability facade for Boomi Agent Control Tower",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js && node --check src/lib/auth.js && node --check src/lib/redaction.js && node --check src/lib/store.js && node --check src/lib/act-client.js && node --check src/lib/act-sync.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {}
+}
