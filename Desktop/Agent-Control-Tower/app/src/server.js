@@ -194,9 +194,11 @@ export function createControlTowerServer() {
         if (!process.env.BOOMI_ACCOUNT_ID || !process.env.BOOMI_USERNAME || !process.env.BOOMI_API_TOKEN) return send(res, 500, { error: 'sync not configured' });
         const body = await readBody(req);
         const lookbackDays = body.lookbackDays == null ? 7 : Number(body.lookbackDays);
+        const fullLookback = body.fullLookback ?? false;
         if (!Number.isFinite(lookbackDays) || lookbackDays < 1 || lookbackDays > 30) return send(res, 400, { error: 'lookbackDays must be between 1 and 30' });
+        if (typeof fullLookback !== 'boolean') return send(res, 400, { error: 'fullLookback must be boolean' });
         try {
-          const result = await syncAct({ client: new ActClient(), store, lookbackDays });
+          const result = await syncAct({ client: new ActClient(), store, lookbackDays, fullLookback });
           store.addAuditEvent({ actor: 'internal', role: 'operator', action: 'act.sync', resource: 'act', result: 'ok' });
           return send(res, 202, { accepted: true, syncedAt: result.syncedAt, snapshotId: result.snapshotId, reconciliation: result.reconciliation });
         } catch (error) {

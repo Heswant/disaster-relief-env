@@ -45,6 +45,21 @@ test('sync resumes from the persisted high-water mark', async () => {
   assert.equal(window.from, '2026-10-08T00:00:00.000Z');
 });
 
+test('full lookback ignores the persisted high-water mark', async () => {
+  store.resetStore();
+  store.setCheckpoint('act:lastSyncAt', '2026-10-08T00:00:00.000Z');
+  const client = fakeClient();
+  const result = await syncAct({
+    client,
+    store,
+    now: new Date('2026-10-09T00:00:00.000Z'),
+    lookbackDays: 7,
+    fullLookback: true,
+  });
+  assert.equal(result.window.from, '2026-10-02T00:00:00.000Z');
+  assert.equal(result.window.to, '2026-10-09T00:00:00.000Z');
+});
+
 test('sync fails closed before persisting a partial snapshot', async () => {
   store.resetStore();
   const client = fakeClient({ failAt: 'aggregateMetrics' });

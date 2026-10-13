@@ -37,10 +37,10 @@ function reconciliation(act, local) {
   return { actSessions: act, localSessions: local, status: act === local ? 'match' : 'drift' };
 }
 
-export async function syncAct({ client, store, now = new Date(), lookbackDays = DEFAULT_LOOKBACK_DAYS } = {}) {
+export async function syncAct({ client, store, now = new Date(), lookbackDays = DEFAULT_LOOKBACK_DAYS, fullLookback = false } = {}) {
   if (!client || !store) throw new Error('syncAct requires client and store');
   const syncedAt = iso(now);
-  const checkpoint = store.getCheckpoint('act:lastSyncAt');
+  const checkpoint = fullLookback ? null : store.getCheckpoint('act:lastSyncAt');
   const window = windowFromCheckpoint(checkpoint, now, lookbackDays);
   const input = inputForWindow(window);
   const providerAccounts = unwrap(await client.providerAccounts(), 'aiAgentProviderAccounts');
