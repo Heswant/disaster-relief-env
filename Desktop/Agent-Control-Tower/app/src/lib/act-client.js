@@ -135,14 +135,13 @@ export class ActClient {
     }
   }
 
-  providerAccounts(input = { pageIndex: 0, pageSize: 100 }, options) {
+  providerAccounts(options) {
     return this.graphql(
-      `query($input: AiAgentProviderAccountsInput!) {
-        aiAgentProviderAccounts(input: $input) {
-          providerAccounts { providerAccountId providerAccountName providerType providerSubType }
-        }
-      }`,
-      { input },
+      `{ aiAgentProviderAccounts(input: { pageIndex: 0, pageSize: 100 }) {
+        numberOfResults
+        aiAgentProviderAccounts { id providerAccountName providerType providerSubType externalProviderAccountId numberOfAgents }
+      } }`,
+      {},
       options,
     );
   }
@@ -182,7 +181,7 @@ export class ActClient {
       `query($input: AiAgentRegistryAuditListingInput) {
         aiAgentRegistryAuditLogs(input: $input) {
           numberOfResults pageIndex currentPageSize
-          aiAgentAuditListings { timestamp operationType status actorName resourceName }
+          aiAgentAuditListings { timestamp entityType providerType providerSubType providerAccountName providerAccountId entityName entityVersion actionType eventTriggeredBy syncStatus syncTransactionId content }
         }
       }`,
       { input },

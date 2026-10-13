@@ -21,7 +21,7 @@ function windowFromCheckpoint(checkpoint, now, lookbackDays) {
 }
 
 function inputForWindow(window) {
-  return { startTime: window.from, endTime: window.to, pageIndex: 0, pageSize: 100 };
+  return { requestTsStart: window.from, requestTsEnd: window.to };
 }
 
 function unwrap(data, field) {
