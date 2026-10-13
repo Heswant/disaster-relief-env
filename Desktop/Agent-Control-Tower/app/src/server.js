@@ -8,6 +8,7 @@ import { actorCan, authenticate, AuthError, ScopeError, filterForActor, isInScop
 import * as store from './lib/store.js';
 import { ActClient, ActError } from './lib/act-client.js';
 import { syncAct } from './lib/act-sync.js';
+import { actInventory } from './lib/act-inventory.js';
 
 const PORT = Number(process.env.PORT ?? 8787);
 // Read lazily so tests and runtime configuration can set env after import.
@@ -229,7 +230,7 @@ export function createControlTowerServer() {
         audit(req, 'dashboard.view', 'dashboards/default', 'ok', currentActor);
         const summary = store.dashboardSummary({ inScope: scoped(currentActor), ...scopedFilter });
         const act = store.latestActSnapshot();
-        return send(res, 200, { dashboardId: 'default', source: act ? 'act+local-projection' : (mockMode() ? 'mock-projection' : 'local-projection'), ...summary, ...(act ? { act: { aggregate: act.aggregate, invocations: act.invocations, reconciliation: act.reconciliation } } : {}) });
+        return send(res, 200, { dashboardId: 'default', source: act ? 'act+local-projection' : (mockMode() ? 'mock-projection' : 'local-projection'), ...summary, ...(act ? { act: { aggregate: act.aggregate, inventory: actInventory(act), reconciliation: act.reconciliation } } : {}) });
       }
 
       if (path === '/api/v1/dashboards/default/timeseries' && req.method === 'GET') {

@@ -121,6 +121,8 @@ function disconnectDashboard() {
   updateConnectionControl();
   renderSessions();
   renderSummary({ totalSessions: 0, successRate: null, failedSessions: 0, totalInputTokens: 0, totalOutputTokens: 0, totalToolCalls: 0, guardrailHits: 0 });
+  renderActMetrics(null);
+  renderActInventory(null);
   renderTrend([]);
   renderEmptyDetail('Connect with a viewer session token to inspect the projection.');
   $('#freshness').textContent = 'Authentication required. Set a valid session token to view this projection.';
@@ -142,6 +144,56 @@ function renderSummary(summary) {
     ['Tool calls', formatNumber(summary.totalToolCalls), `${summary.guardrailHits} guardrail hits`, 'tool calls', 'rose'],
   ];
   $('#summary').innerHTML = cards.map(([label, value, detail, icon, tone]) => `<article class="metric-card ${tone}"><div class="metric-top"><span>${label}</span><span class="metric-icon" aria-hidden="true">${icon === 'sessions' ? '◌' : icon === 'success' ? '↗' : icon === 'tokens' ? '◈' : '⌁'}</span></div><strong>${value}</strong><small>${detail}</small><div class="metric-rule" aria-hidden="true"></div></article>`).join('');
+}
+
+function renderActMetrics(act) {
+  const mount = $('#act-metrics');
+  const status = $('#act-sync-status');
+  if (!mount || !status) return;
+  if (!act?.aggregate) {
+    status.textContent = 'Waiting for sync';
+    status.className = 'panel-tag';
+    mount.innerHTML = '<p class="empty">No live ACT snapshot is available yet. Run a sync to view Boomi metrics.</p>';
+    return;
+  }
+  const aggregate = act.aggregate;
+  const reconciliation = act.reconciliation;
+  const metric = (label, value, detail = '') => `<article class="act-metric"><span>${label}</span><strong>${value}</strong>${detail ? `<small>${detail}</small>` : ''}</article>`;
+  const successTone = aggregate.successRate == null ? '' : aggregate.successRate >= 90 ? ' good' : ' caution';
+  const statusLabel = reconciliation?.status ?? 'unknown';
+  status.textContent = `Sessions ${statusLabel}`;
+  status.className = `panel-tag act-status ${statusLabel}`;
+  mount.innerHTML = [
+    metric('Active agents', formatNumber(aggregate.activeAgents)),
+    metric('ACT invocations', formatNumber(aggregate.totalInvocations)),
+    metric('ACT sessions', formatNumber(aggregate.totalSessions), reconciliation ? `${formatNumber(reconciliation.localSessions)} local` : ''),
+    metric('Success rate', aggregate.successRate == null ? '—' : `${aggregate.successRate}%`, successTone ? `<span class="act-value${successTone}">${successTone === ' good' ? 'healthy' : 'review'}</span>` : ''),
+    metric('Total tokens', formatNumber(aggregate.totalTokens)),
+    metric('Tool calls', formatNumber(aggregate.totalToolCalls)),
+    metric('Errors', formatNumber(aggregate.totalErrors)),
+    metric('Guardrail hits', formatNumber(aggregate.totalGuardrailHits)),
+    metric('Avg response', aggregate.avgResponseTime == null ? '—' : `${formatNumber(Math.round(aggregate.avgResponseTime))} ms`),
+  ].join('');
+}
+
+function renderActInventory(act) {
+  const mount = $('#act-inventory');
+  const count = $('#inventory-count');
+  if (!mount || !count) return;
+  const inventory = act?.inventory;
+  if (!inventory) {
+    count.textContent = 'No snapshot';
+    mount.innerHTML = '<p class="empty">No synchronized ACT inventory is available yet.</p>';
+    return;
+  }
+  const agents = Array.isArray(inventory.agents) ? inventory.agents : [];
+  count.textContent = `${formatNumber(inventory.observedAgentCount)} observed · ${formatNumber(inventory.totalProviderAgents)} registered`;
+  if (!agents.length) {
+    mount.innerHTML = '<p class="empty">No named agents were observed in the synchronized window.</p>';
+    return;
+  }
+  const rows = agents.map((agent) => `<tr><th scope="row">${safe(agent.name)}</th><td>${safe(agent.providerAccountName)}</td><td>${safe(agent.providerType)}</td><td>${safe(agent.version)}</td><td>${safe(agent.alias)}</td><td><span class="inventory-status ${safe(String(agent.agentStatus).toLowerCase())}">${safe(agent.agentStatus)}</span></td><td><span class="inventory-status ${safe(String(agent.aliasStatus).toLowerCase())}">${safe(agent.aliasStatus)}</span></td><td>${formatNumber(agent.totalInvocations)}</td><td>${formatNumber(agent.totalSessions)}</td></tr>`).join('');
+  mount.innerHTML = `<div class="inventory-scroll"><table><thead><tr><th scope="col">Agent</th><th scope="col">Provider account</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Alias</th><th scope="col">Agent status</th><th scope="col">Alias status</th><th scope="col">Invocations</th><th scope="col">Sessions</th></tr></thead><tbody>${rows}</tbody></table></div><p class="inventory-note">${formatNumber(inventory.unattributedInvocations?.totalInvocations)} invocations remain unattributed to a named agent in this ACT window.</p>`;
 }
 
 function renderTrend(points) {
@@ -235,12 +287,15 @@ async function load({ preserveSelection = true } = {}) {
     ]);
     state.sessions = sessions.items;
     renderSummary(summary);
+    renderActMetrics(summary.act);
+    renderActInventory(summary.act);
     renderTrend(trend.items);
     renderSessions();
-    const source = summary.source === 'mock-projection' ? 'synthetic mock data' : 'local redacted projection';
+    const hasAct = summary.source === 'act+local-projection' && summary.act;
+    const source = summary.source === 'mock-projection' ? 'synthetic mock data' : hasAct ? 'live ACT metrics + local redacted projection' : 'local redacted projection';
     $('#freshness').textContent = `Serving ${source}`;
     $('#last-refresh').textContent = `Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date())}`;
-    $('#mode-badge').textContent = summary.source === 'mock-projection' ? 'MOCK DATA' : 'LOCAL PROJECTION';
+    $('#mode-badge').textContent = summary.source === 'mock-projection' ? 'MOCK DATA' : hasAct ? 'ACT + LOCAL' : 'LOCAL PROJECTION';
     $('#mode-badge').classList.toggle('mock', summary.source === 'mock-projection');
     const selectedStillVisible = state.sessions.some((session) => session.sessionId === state.selected);
     if (!preserveSelection || !selectedStillVisible) {

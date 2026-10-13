@@ -44,7 +44,23 @@
       <span id="last-refresh" class="notice-time"></span>
     </section>
 
-    <section id="summary" class="cards" aria-label="Summary metrics"></section>
+    <section id="summary" class="cards" aria-label="Local projection summary metrics"></section>
+
+    <section class="panel act-panel" aria-labelledby="act-heading">
+      <div class="panel-heading">
+        <div><p class="eyebrow">BOOMI ACT</p><h2 id="act-heading">Live agent metrics</h2><p class="panel-caption">Synchronized aggregate metrics from the Agent Control Tower</p></div>
+        <span id="act-sync-status" class="panel-tag">Waiting for sync</span>
+      </div>
+      <div id="act-metrics" class="act-metrics" aria-live="polite"></div>
+    </section>
+
+    <section class="panel inventory-panel" aria-labelledby="inventory-heading">
+      <div class="panel-heading">
+        <div><p class="eyebrow">AGENT BUILDING</p><h2 id="inventory-heading">Agent inventory</h2><p class="panel-caption">Synchronized ACT registry and invocation coverage; local session timelines remain below.</p></div>
+        <span id="inventory-count" class="panel-tag">No snapshot</span>
+      </div>
+      <div id="act-inventory" class="act-inventory" aria-live="polite"></div>
+    </section>
 
     <section class="panel trend-panel">
       <div class="panel-heading">

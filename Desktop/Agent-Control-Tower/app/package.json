@@ -8,7 +8,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
-    "check": "node --check src/server.js && node --check src/lib/auth.js && node --check src/lib/redaction.js && node --check src/lib/store.js && node --check src/lib/act-client.js && node --check src/lib/act-sync.js"
+    "check": "node --check src/server.js && node --check src/lib/auth.js && node --check src/lib/redaction.js && node --check src/lib/store.js && node --check src/lib/act-client.js && node --check src/lib/act-sync.js && node --check src/lib/act-inventory.js"
   },
   "engines": {
     "node": ">=20"
