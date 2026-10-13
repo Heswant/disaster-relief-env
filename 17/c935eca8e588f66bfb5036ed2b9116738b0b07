@@ -1,0 +1,22 @@
+Desktop/Agent-Control-Tower/app/src/lib/act-sync.js
+  s_2280b97093aadd::t_95b997c2197640 24
+Desktop/Agent-Control-Tower/app/src/lib/act-client.js
+  s_2280b97093aadd::t_9513493501fa9e 138,140-144
+  s_2280b97093aadd::t_99d8a63997a349 184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "17c935eca8e588f66bfb5036ed2b9116738b0b07",
+  "prompts": {},
+  "sessions": {
+    "s_2280b97093aadd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f64603b1-e227-486d-b1b5-c68d8de3ce91",
+        "model": "openai.gpt-5.6-luna"
+      },
+      "human_author": "Heswant <sireesha.yarramanayunigari@boomiteam.com>"
+    }
+  }
+}
