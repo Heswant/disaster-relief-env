@@ -25,6 +25,9 @@ function addMetrics(target, row) {
 /**
  * Shape the synchronized ACT snapshot into display-safe agent-building data.
  * Internal IDs are used only for joining/grouping and never leave this module.
+ * The resulting ACT data is global to the synchronized account and must only
+ * be exposed to actors with an explicit wildcard scope until ACT records carry
+ * tenant/project/agent identity that can be filtered safely.
  */
 export function actInventory(snapshot, externalAccountId = process.env.ACT_INVENTORY_EXTERNAL_ACCOUNT_ID ?? 'solutionsteam-70I6P5') {
   if (!snapshot) return null;

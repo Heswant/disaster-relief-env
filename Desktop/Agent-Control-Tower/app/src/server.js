@@ -218,7 +218,7 @@ export function createControlTowerServer() {
           lastSyncAt: store.getCheckpoint('act:lastSyncAt'),
           lastSuccessAt: store.getCheckpoint('act:lastSuccessAt'),
           lastError: store.getCheckpoint('act:lastError'),
-          reconciliation: snapshot?.reconciliation ?? null,
+          reconciliation: currentActor.scopes.wildcard ? (snapshot?.reconciliation ?? null) : null,
         });
       }
 
@@ -229,8 +229,9 @@ export function createControlTowerServer() {
         const scopedFilter = filterForActor(currentActor, filter);
         audit(req, 'dashboard.view', 'dashboards/default', 'ok', currentActor);
         const summary = store.dashboardSummary({ inScope: scoped(currentActor), ...scopedFilter });
-        const act = store.latestActSnapshot();
-        return send(res, 200, { dashboardId: 'default', source: act ? 'act+local-projection' : (mockMode() ? 'mock-projection' : 'local-projection'), ...summary, ...(act ? { act: { aggregate: act.aggregate, inventory: actInventory(act), reconciliation: act.reconciliation } } : {}) });
+        const act = currentActor.scopes.wildcard ? store.latestActSnapshot() : null;
+        const source = act ? 'act+local-projection' : (currentActor.scopes.wildcard && mockMode() ? 'mock-projection' : 'local-projection');
+        return send(res, 200, { dashboardId: 'default', source, ...summary, ...(act ? { act: { aggregate: act.aggregate, inventory: actInventory(act), reconciliation: act.reconciliation } } : {}) });
       }
 
       if (path === '/api/v1/dashboards/default/timeseries' && req.method === 'GET') {

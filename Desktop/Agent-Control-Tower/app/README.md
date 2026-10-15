@@ -40,10 +40,17 @@ test/facade.test.js    Ingestion, redaction, idempotency, authorization, leak te
 | `POST /api/v1/exports` | auditor/operator only | queue an async export |
 | `GET /api/v1/exports/:id` | demo user | export job status |
 | `POST /internal/v1/sync/act` | `x-control-tower-token` | pull-only ACT snapshot sync (disabled by default) |
-| `GET /api/v1/act/status` | demo user | ACT sync health and reconciliation |
+| `GET /api/v1/act/status` | wildcard-scoped viewer | ACT sync health and reconciliation |
 
 Every facade read/write records an external audit event. Viewers are denied
 exports and the denial is audited.
+
+ACT snapshots currently contain account-wide aggregate metrics and inventory,
+not tenant/project/agent-scoped records. The facade therefore exposes ACT
+aggregate, inventory, and reconciliation data only to actors with an explicit
+wildcard scope. Scoped external viewers receive the filtered local redacted
+projection and no global ACT block or reconciliation counts until the ACT
+snapshot model carries enforceable identity dimensions.
 
 ## Run locally
 
@@ -127,5 +134,5 @@ test against a production account if it would create permanent metrics.
 - Replace demo auth with real external identity (OIDC or equivalent).
 - Move the projection to a relational database with migrations.
 - Add rate limits, request timeouts, retention, and delivery monitoring.
-- Add tenant/project/agent/alias/time-range scope enforcement at the production boundary.
+- Add tenant/project/agent/alias/time-range scope enforcement at the production boundary, including identity-dimensioned ACT snapshots before re-enabling scoped ACT metrics.
 - Secret scanning + client-bundle checks (no tokens in browser code).

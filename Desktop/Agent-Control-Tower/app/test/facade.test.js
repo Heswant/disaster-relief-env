@@ -35,6 +35,13 @@ afterEach(() => new Promise((resolve) => server.close(resolve)));
 
 const authHeaders = () => ({ Authorization: `Bearer ${DEMO_TOKEN}` });
 
+function restoreEnv(previous) {
+  for (const [key, value] of Object.entries(previous)) {
+    if (value == null) delete process.env[key];
+    else process.env[key] = value;
+  }
+}
+
 function telemetrySession(overrides = {}) {
   return {
     sessionId: 's1',
@@ -258,6 +265,60 @@ test('dashboard summary aggregates local projection', async () => {
   assert.equal(summary.totalInputTokens, 14);
   assert.equal(summary.totalToolCalls, 2);
   assert.equal(summary.guardrailHits, 1);
+});
+
+test('scoped actors cannot see global ACT snapshot data', async () => {
+  const previous = Object.fromEntries([
+    'CONTROL_TOWER_AUTH_MODE', 'CONTROL_TOWER_JWT_SECRET', 'CONTROL_TOWER_JWT_ISSUER',
+    'CONTROL_TOWER_JWT_AUDIENCE', 'CONTROL_TOWER_MOCK_DATA',
+  ].map((key) => [key, process.env[key]]));
+  try {
+    process.env.CONTROL_TOWER_MOCK_DATA = 'false';
+    await post('/internal/v1/telemetry', { session: telemetrySession() }, { 'x-control-tower-token': INTERNAL_TOKEN });
+    await post('/internal/v1/telemetry', { session: telemetrySession({ sessionId: 'tenant-b-run', tenantId: 'tenant-b', projectId: 'project-b' }) }, { 'x-control-tower-token': INTERNAL_TOKEN });
+    store.addActSnapshot({
+      aggregate: { totalSessions: 901, totalInvocations: 902 },
+      providerAccounts: { aiAgentProviderAccounts: [{ id: 'target-id', externalProviderAccountId: 'solutionsteam-70I6P5', providerAccountName: 'Secret Provider', providerType: 'BOOMI', numberOfAgents: 7 }] },
+      invocations: [{ totalInvocations: 2, totalSessions: 1, aiAgentListing: { agentId: 'secret-agent', providerAccountGuId: 'target-id', versionName: 'Secret Agent' } }],
+      reconciliation: { actSessions: 901, localSessions: 902, status: 'drift' },
+    });
+    process.env.CONTROL_TOWER_AUTH_MODE = 'jwt';
+    process.env.CONTROL_TOWER_JWT_SECRET = 'test-jwt-secret';
+    process.env.CONTROL_TOWER_JWT_ISSUER = 'https://issuer.test';
+    process.env.CONTROL_TOWER_JWT_AUDIENCE = 'control-tower';
+    const token = signHs256Token({
+      sub: 'tenant-a-viewer', role: 'viewer', scopes: { tenantIds: ['tenant-a'] },
+      iss: 'https://issuer.test', aud: 'control-tower', exp: Math.floor(Date.now() / 1000) + 300,
+    }, process.env.CONTROL_TOWER_JWT_SECRET);
+    const headers = { Authorization: `Bearer ${token}` };
+    const summaryResponse = await fetch(base + '/api/v1/dashboards/default/summary', { headers });
+    assert.equal(summaryResponse.status, 200);
+    const summaryText = await summaryResponse.text();
+    const summary = JSON.parse(summaryText);
+    assert.equal(summary.source, 'local-projection');
+    assert.equal(summary.totalSessions, 1);
+    assert.equal(summary.act, undefined);
+    assert.equal(summaryText.includes('901'), false);
+    assert.equal(summaryText.includes('secret-agent'), false);
+    assert.equal(summaryText.includes('Secret Provider'), false);
+
+    const statusResponse = await fetch(base + '/api/v1/act/status', { headers });
+    assert.equal(statusResponse.status, 200);
+    const statusText = await statusResponse.text();
+    assert.equal(JSON.parse(statusText).reconciliation, null);
+    assert.equal(statusText.includes('901'), false);
+    assert.equal(statusText.includes('902'), false);
+
+    process.env.CONTROL_TOWER_AUTH_MODE = 'demo';
+    const wildcardSummary = await (await fetch(base + '/api/v1/dashboards/default/summary', { headers: authHeaders() })).json();
+    assert.equal(wildcardSummary.source, 'act+local-projection');
+    assert.equal(wildcardSummary.act.aggregate.totalSessions, 901);
+    assert.equal(wildcardSummary.act.inventory.agents[0].name, 'Secret Agent');
+    const wildcardStatus = await (await fetch(base + '/api/v1/act/status', { headers: authHeaders() })).json();
+    assert.deepEqual(wildcardStatus.reconciliation, { actSessions: 901, localSessions: 902, status: 'drift' });
+  } finally {
+    restoreEnv(previous);
+  }
 });
 
 test('scoped auditors see only scoped audit events', async () => {
