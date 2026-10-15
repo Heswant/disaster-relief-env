@@ -1,0 +1,31 @@
+Desktop/Agent-Control-Tower/app/src/lib/act-inventory.js
+  s_96a3cb7c4c63a1::t_5233a71ae19fac 28-30
+Desktop/Agent-Control-Tower/app/src/server.js
+  s_96a3cb7c4c63a1::t_5ac40d725d5471 221
+  s_96a3cb7c4c63a1::t_7980e6e193090a 232
+  s_96a3cb7c4c63a1::t_d2d207e192ba5d 233-234
+Desktop/Agent-Control-Tower/app/test/facade.test.js
+  s_96a3cb7c4c63a1::t_84d4b1fc9c89a9 270-306,311-323
+  s_96a3cb7c4c63a1::t_1de5fff6c9a0cc 307-310
+  s_96a3cb7c4c63a1::t_6b80aa4a100de6 38-44
+Desktop/Agent-Control-Tower/app/README.md
+  s_96a3cb7c4c63a1::t_e983f16618db0c 43
+  s_96a3cb7c4c63a1::t_5feb9d2b6b8027 48-54
+  s_96a3cb7c4c63a1::t_09541de551bf25 137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "53ca27095a420681e789aece9d2a761d1ce9e135",
+  "prompts": {},
+  "sessions": {
+    "s_96a3cb7c4c63a1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7acaaf3c-6840-4297-99d5-091a8dc042c8",
+        "model": "openai.gpt-5.6-luna"
+      },
+      "human_author": "Heswant <sireesha.yarramanayunigari@boomiteam.com>"
+    }
+  }
+}
